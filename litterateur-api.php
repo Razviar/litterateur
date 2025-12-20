@@ -4,7 +4,7 @@
  * Plugin Name: Litterateur API
  * Plugin URI: https://litterateur.ai
  * Description: REST API integration for Litterateur content management service
- * Version: 1.0.3
+ * Version: 1.0.4
  * Author: Litterateur
  * Author URI: https://litterateur.ai
  * License: GPL v2 or later
@@ -18,7 +18,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Plugin constants
-define('TEXTER_API_VERSION', '1.0.3');
+define('TEXTER_API_VERSION', '1.0.4');
 define('TEXTER_API_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('TEXTER_API_PLUGIN_URL', plugin_dir_url(__FILE__));
 

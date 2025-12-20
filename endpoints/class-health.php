@@ -38,17 +38,17 @@ class Texter_API_Endpoint_Health
         // Handle multisite - switch to requested site if specified
         Texter_API_Auth::maybe_switch_to_site($request);
 
-        // Get site logo
+        // Get site icon (favicon) - prioritize this over custom logo
         $site_logo_url = '';
-        $custom_logo_id = get_theme_mod('custom_logo');
-        if ($custom_logo_id) {
-            $site_logo_url = wp_get_attachment_image_url($custom_logo_id, 'medium');
+        $site_icon_id = get_option('site_icon');
+        if ($site_icon_id) {
+            $site_logo_url = wp_get_attachment_image_url($site_icon_id, 'medium');
         }
-        // Fallback to site icon if no custom logo
+        // Fallback to custom logo if no site icon
         if (empty($site_logo_url)) {
-            $site_icon_id = get_option('site_icon');
-            if ($site_icon_id) {
-                $site_logo_url = wp_get_attachment_image_url($site_icon_id, 'medium');
+            $custom_logo_id = get_theme_mod('custom_logo');
+            if ($custom_logo_id) {
+                $site_logo_url = wp_get_attachment_image_url($custom_logo_id, 'medium');
             }
         }
 
