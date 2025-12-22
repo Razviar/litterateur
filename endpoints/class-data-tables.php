@@ -162,63 +162,74 @@ class Texter_API_Endpoint_Data_Tables {
      */
     private function ensure_table_structure($table_name, $fields) {
         global $wpdb;
-        
+
         $charset_collate = $wpdb->get_charset_collate();
-        
+
         if (!$this->table_exists($table_name)) {
-            // Create new table
+            // Create new table - dbDelta doesn't support COMMENT, so we add them after
             $column_defs = array(
                 'id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT',
                 'slug VARCHAR(255) NOT NULL',
                 'name VARCHAR(512)',
             );
-            
+
             foreach ($fields as $field_name => $field_type) {
                 // Skip reserved fields
                 if (in_array($field_name, array('id', 'slug', 'name', 'created_at', 'updated_at'))) {
                     continue;
                 }
                 $mysql_type = $this->map_field_type($field_type);
-                $comment = "COMMENT 'Type:{$field_type};'";
-                $column_defs[] = "`{$field_name}` {$mysql_type} {$comment}";
+                $column_defs[] = "`{$field_name}` {$mysql_type}";
             }
-            
+
             $column_defs[] = 'created_at DATETIME DEFAULT CURRENT_TIMESTAMP';
             $column_defs[] = 'updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP';
             $column_defs[] = 'PRIMARY KEY (id)';
             $column_defs[] = 'UNIQUE KEY slug_unique (slug)';
-            
+
             $sql = "CREATE TABLE `{$table_name}` (\n" . implode(",\n", $column_defs) . "\n) {$charset_collate};";
-            
+
             require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
             dbDelta($sql);
-            
+
             if (!$this->table_exists($table_name)) {
                 return new WP_Error('table_creation_failed', 'Failed to create table');
             }
+
+            // Add comments to columns using ALTER TABLE (dbDelta doesn't support COMMENT)
+            foreach ($fields as $field_name => $field_type) {
+                if (in_array($field_name, array('id', 'slug', 'name', 'created_at', 'updated_at'))) {
+                    continue;
+                }
+                $mysql_type = $this->map_field_type($field_type);
+                $wpdb->query("ALTER TABLE `{$table_name}` MODIFY COLUMN `{$field_name}` {$mysql_type} COMMENT 'Type:{$field_type};'");
+            }
         } else {
-            // Update existing table - add missing columns
+            // Update existing table - add missing columns and update comments
             $existing_columns = $this->get_table_columns($table_name);
-            
+
             foreach ($fields as $field_name => $field_type) {
                 // Skip reserved fields
                 if (in_array($field_name, array('id', 'slug', 'name', 'created_at', 'updated_at'))) {
                     continue;
                 }
-                
+
+                $mysql_type = $this->map_field_type($field_type);
+
                 if (!isset($existing_columns[$field_name])) {
-                    // Add new column
-                    $mysql_type = $this->map_field_type($field_type);
-                    $comment = "COMMENT 'Type:{$field_type};'";
-                    $result = $wpdb->query("ALTER TABLE `{$table_name}` ADD COLUMN `{$field_name}` {$mysql_type} {$comment}");
-                    
+                    // Add new column with comment
+                    $result = $wpdb->query("ALTER TABLE `{$table_name}` ADD COLUMN `{$field_name}` {$mysql_type} COMMENT 'Type:{$field_type};'");
+
                     if ($result === false) {
                         return new WP_Error('column_add_failed', "Failed to add column: {$field_name}");
                     }
+                } else {
+                    // Update existing column to add/update comment
+                    $wpdb->query("ALTER TABLE `{$table_name}` MODIFY COLUMN `{$field_name}` {$mysql_type} COMMENT 'Type:{$field_type};'");
                 }
             }
         }
-        
+
         return true;
     }
     
