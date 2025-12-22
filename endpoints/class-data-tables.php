@@ -179,7 +179,8 @@ class Texter_API_Endpoint_Data_Tables {
                     continue;
                 }
                 $mysql_type = $this->map_field_type($field_type);
-                $column_defs[] = "`{$field_name}` {$mysql_type}";
+                $comment = "COMMENT 'Type:{$field_type};'";
+                $column_defs[] = "`{$field_name}` {$mysql_type} {$comment}";
             }
             
             $column_defs[] = 'created_at DATETIME DEFAULT CURRENT_TIMESTAMP';
@@ -208,7 +209,8 @@ class Texter_API_Endpoint_Data_Tables {
                 if (!isset($existing_columns[$field_name])) {
                     // Add new column
                     $mysql_type = $this->map_field_type($field_type);
-                    $result = $wpdb->query("ALTER TABLE `{$table_name}` ADD COLUMN `{$field_name}` {$mysql_type}");
+                    $comment = "COMMENT 'Type:{$field_type};'";
+                    $result = $wpdb->query("ALTER TABLE `{$table_name}` ADD COLUMN `{$field_name}` {$mysql_type} {$comment}");
                     
                     if ($result === false) {
                         return new WP_Error('column_add_failed', "Failed to add column: {$field_name}");
