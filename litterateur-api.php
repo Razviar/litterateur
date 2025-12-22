@@ -4,7 +4,7 @@
  * Plugin Name: Litterateur API
  * Plugin URI: https://litterateur.ai
  * Description: REST API integration for Litterateur content management service
- * Version: 1.0.9
+ * Version: 1.0.10
  * Author: Litterateur
  * Author URI: https://litterateur.ai
  * License: GPL v2 or later
@@ -18,7 +18,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Plugin constants
-define('TEXTER_API_VERSION', '1.0.9');
+define('TEXTER_API_VERSION', '1.0.10');
 define('TEXTER_API_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('TEXTER_API_PLUGIN_URL', plugin_dir_url(__FILE__));
 
@@ -98,3 +98,14 @@ function texter_api_deactivate()
     }
 }
 register_deactivation_hook(__FILE__, 'texter_api_deactivate');
+
+/**
+ * Add Settings link to plugins page
+ */
+function texter_api_plugin_action_links($links)
+{
+    $settings_link = '<a href="' . admin_url('admin.php?page=texter-api') . '">Settings</a>';
+    array_unshift($links, $settings_link);
+    return $links;
+}
+add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'texter_api_plugin_action_links');
