@@ -166,6 +166,23 @@ class Texter_API_Endpoint_Structured {
     }
     
     /**
+     * Parse texter type from column comment
+     * Comments are in format: "Type:image_url;" or "Type:url;"
+     *
+     * @param string $comment
+     * @return string|null
+     */
+    private function parse_texter_type($comment) {
+        if (empty($comment)) {
+            return null;
+        }
+        if (preg_match('/Type:([^;]+);/', $comment, $matches)) {
+            return $matches[1];
+        }
+        return null;
+    }
+
+    /**
      * Get all structured data types (tables)
      *
      * @param WP_REST_Request $request
@@ -173,34 +190,37 @@ class Texter_API_Endpoint_Structured {
      */
     public function get_types($request) {
         global $wpdb;
-        
+
         $prefix = $wpdb->prefix . self::TABLE_PREFIX;
         $tables = $wpdb->get_results(
             $wpdb->prepare("SHOW TABLES LIKE %s", $prefix . '%'),
             ARRAY_N
         );
-        
+
         $types = array();
         foreach ($tables as $table) {
             $table_name = $table[0];
             $name = str_replace($prefix, '', $table_name);
-            
-            // Get table structure
-            $columns = $wpdb->get_results("DESCRIBE `$table_name`", ARRAY_A);
+
+            // Get table structure with comments using SHOW FULL COLUMNS
+            $columns = $wpdb->get_results("SHOW FULL COLUMNS FROM `$table_name`", ARRAY_A);
             $row_count = $wpdb->get_var("SELECT COUNT(*) FROM `$table_name`");
-            
+
             $fields = array();
             foreach ($columns as $column) {
                 if ($column['Field'] === 'id') continue; // Skip auto-increment id
-                
+
+                $texter_type = $this->parse_texter_type($column['Comment']);
+
                 $fields[] = array(
                     'name' => $column['Field'],
                     'type' => $column['Type'],
+                    'texter_type' => $texter_type,
                     'nullable' => $column['Null'] === 'YES',
                     'default' => $column['Default'],
                 );
             }
-            
+
             $types[] = array(
                 'name' => $name,
                 'table' => $table_name,
@@ -208,7 +228,7 @@ class Texter_API_Endpoint_Structured {
                 'row_count' => intval($row_count),
             );
         }
-        
+
         return Texter_API_Response::success(array(
             'types' => $types,
         ));
@@ -222,34 +242,38 @@ class Texter_API_Endpoint_Structured {
      */
     public function get_type($request) {
         global $wpdb;
-        
+
         $name = $request->get_param('name');
-        
+
         if (!$this->validate_name($name)) {
             return Texter_API_Response::validation_error('Invalid type name. Use lowercase letters, numbers, and underscores only.');
         }
-        
+
         if (!$this->table_exists($name)) {
             return Texter_API_Response::not_found('Type not found: ' . $name);
         }
-        
+
         $table_name = $this->get_table_name($name);
-        $columns = $wpdb->get_results("DESCRIBE `$table_name`", ARRAY_A);
+        // Use SHOW FULL COLUMNS to get comments
+        $columns = $wpdb->get_results("SHOW FULL COLUMNS FROM `$table_name`", ARRAY_A);
         $row_count = $wpdb->get_var("SELECT COUNT(*) FROM `$table_name`");
-        
+
         $fields = array();
         foreach ($columns as $column) {
             if ($column['Field'] === 'id') continue;
-            
+
+            $texter_type = $this->parse_texter_type($column['Comment']);
+
             $fields[] = array(
                 'name' => $column['Field'],
                 'type' => $column['Type'],
+                'texter_type' => $texter_type,
                 'nullable' => $column['Null'] === 'YES',
                 'default' => $column['Default'],
                 'key' => $column['Key'],
             );
         }
-        
+
         return Texter_API_Response::success(array(
             'name' => $name,
             'table' => $table_name,
