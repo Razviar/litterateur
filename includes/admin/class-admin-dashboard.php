@@ -148,6 +148,8 @@ class Litterateur_Admin_Dashboard
                     </table>
                 </div>
 
+                <?php Litterateur_Admin_Plugins::render(); ?>
+
             </div><!-- .litterateur-api-cards-grid -->
         </div><!-- .wrap -->
 
