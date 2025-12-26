@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Shared admin header component for Litterateur API
+ * Shared admin header component for the plugin
  */
 
 if (!defined('ABSPATH')) {
@@ -12,16 +12,17 @@ class Litterateur_Admin_Header
 {
     /**
      * Render the branded header with logo and panel link
-     * 
+     *
      * @param string $page_title The page title to display
      */
     public static function render($page_title = '')
     {
-        // Generate control panel URL based on site domain
-        $site_url = get_site_url();
-        $parsed = parse_url($site_url);
-        $domain = $parsed['host'] ?? '';
-        $panel_url = 'https://litterateur.pro/panel/websites/' . str_replace('.', '-', $domain);
+        $brand_name = texter_brand('name', 'Litterateur');
+        $panel_url = texter_get_panel_url();
+
+        // Calculate dynamic dot position based on text length
+        $text_length = strlen($brand_name);
+        $dot_x = 50 + ($text_length * 10) + 4;
 ?>
         <div class="litterateur-header">
             <div class="litterateur-logo">
@@ -49,10 +50,10 @@ class Litterateur_Admin_Header
                     <rect x="14" y="43" width="7" rx="1.25" height="2.5" fill="white" opacity="0.85" />
                     <rect x="24" y="43" width="5" rx="1.25" height="2.5" fill="white" opacity="0.85" />
                     <rect x="32" y="43" width="6" rx="1.25" height="2.5" fill="white" opacity="0.85" />
-                    <!-- Brand text -->
-                    <text x="50" y="34" font-family="Inter, -apple-system, sans-serif" font-size="18" font-weight="700" fill="white" letter-spacing="-0.02em">Litterateur</text>
-                    <!-- Blinking dot -->
-                    <circle cx="146" cy="29" r="4" fill="#22c55e" />
+                    <!-- Brand text - dynamically inserted -->
+                    <text x="50" y="34" font-family="Inter, -apple-system, sans-serif" font-size="18" font-weight="700" fill="white" letter-spacing="-0.02em"><?php echo esc_html($brand_name); ?></text>
+                    <!-- Status dot - dynamically positioned -->
+                    <circle cx="<?php echo esc_attr($dot_x); ?>" cy="29" r="4" fill="#22c55e" />
                 </svg>
                 <?php if ($page_title): ?>
                     <span class="litterateur-page-title"><?php echo esc_html($page_title); ?></span>

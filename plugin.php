@@ -2,11 +2,11 @@
 
 /**
  * Plugin Name: Litterateur API
- * Plugin URI: https://litterateur.ai
+ * Plugin URI: https://litterateur.pro
  * Description: REST API integration for Litterateur content management service
- * Version: 1.0.11
+ * Version: 1.0.12
  * Author: Litterateur
- * Author URI: https://litterateur.ai
+ * Author URI: https://litterateur.pro
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: litterateur-api
@@ -18,9 +18,12 @@ if (!defined('ABSPATH')) {
 }
 
 // Plugin constants
-define('TEXTER_API_VERSION', '1.0.11');
+define('TEXTER_API_VERSION', '1.0.12');
 define('TEXTER_API_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('TEXTER_API_PLUGIN_URL', plugin_dir_url(__FILE__));
+
+// Include plugin configuration (must be loaded first)
+require_once TEXTER_API_PLUGIN_DIR . 'includes/config.php';
 
 // Include required files
 require_once TEXTER_API_PLUGIN_DIR . 'includes/class-response.php';
@@ -105,7 +108,8 @@ register_deactivation_hook(__FILE__, 'texter_api_deactivate');
  */
 function texter_api_plugin_action_links($links)
 {
-    $settings_link = '<a href="' . admin_url('admin.php?page=texter-api') . '">Settings</a>';
+    $menu_slug = texter_brand('menu_slug', 'litterateur');
+    $settings_link = '<a href="' . admin_url('admin.php?page=' . $menu_slug . '-api') . '">Settings</a>';
     array_unshift($links, $settings_link);
     return $links;
 }

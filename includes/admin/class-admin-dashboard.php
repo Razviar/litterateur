@@ -33,13 +33,8 @@ class Litterateur_Admin_Dashboard
         }
 
         $api_key = Texter_API_Auth::get_api_key();
-        $api_url = rest_url(Texter_API::API_NAMESPACE);
-
-        // Generate control panel URL based on site domain
-        $site_url = get_site_url();
-        $parsed = parse_url($site_url);
-        $domain = $parsed['host'] ?? '';
-        $panel_url = 'https://litterateur.pro/panel/websites/' . str_replace('.', '-', $domain);
+        $api_url = rest_url(Texter_API::get_api_namespace());
+        $panel_url = texter_get_panel_url();
 
 ?>
         <div class="wrap litterateur-api-settings">

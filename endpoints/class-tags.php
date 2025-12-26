@@ -92,9 +92,9 @@ class Texter_API_Endpoint_Tags {
         foreach ($tags as $tag) {
             $result[] = array(
                 'id' => $tag->term_id,
-                'name' => $tag->name,
+                'name' => html_entity_decode($tag->name, ENT_QUOTES | ENT_HTML5, 'UTF-8'),
                 'slug' => $tag->slug,
-                'description' => $tag->description,
+                'description' => html_entity_decode($tag->description, ENT_QUOTES | ENT_HTML5, 'UTF-8'),
                 'count' => $tag->count,
             );
         }
@@ -164,7 +164,7 @@ class Texter_API_Endpoint_Tags {
                     $term = get_term($result['term_id'], 'post_tag');
                     $results['updated'][] = array(
                         'id' => $term->term_id,
-                        'name' => $term->name,
+                        'name' => html_entity_decode($term->name, ENT_QUOTES | ENT_HTML5, 'UTF-8'),
                         'slug' => $term->slug,
                     );
                 }
@@ -181,7 +181,7 @@ class Texter_API_Endpoint_Tags {
                     $term = get_term($result['term_id'], 'post_tag');
                     $results['created'][] = array(
                         'id' => $term->term_id,
-                        'name' => $term->name,
+                        'name' => html_entity_decode($term->name, ENT_QUOTES | ENT_HTML5, 'UTF-8'),
                         'slug' => $term->slug,
                     );
                 }
@@ -229,9 +229,9 @@ class Texter_API_Endpoint_Tags {
         
         $created = array(
             'id' => $term->term_id,
-            'name' => $term->name,
+            'name' => html_entity_decode($term->name, ENT_QUOTES | ENT_HTML5, 'UTF-8'),
             'slug' => $term->slug,
-            'description' => $term->description,
+            'description' => html_entity_decode($term->description, ENT_QUOTES | ENT_HTML5, 'UTF-8'),
             'count' => $term->count,
         );
         
@@ -286,9 +286,9 @@ class Texter_API_Endpoint_Tags {
         
         $updated = array(
             'id' => $term->term_id,
-            'name' => $term->name,
+            'name' => html_entity_decode($term->name, ENT_QUOTES | ENT_HTML5, 'UTF-8'),
             'slug' => $term->slug,
-            'description' => $term->description,
+            'description' => html_entity_decode($term->description, ENT_QUOTES | ENT_HTML5, 'UTF-8'),
             'count' => $term->count,
         );
         
@@ -345,9 +345,9 @@ class Texter_API_Endpoint_Tags {
             foreach ($all_tags as $tag) {
                 $tags_list[] = array(
                     'id' => $tag->term_id,
-                    'name' => $tag->name,
+                    'name' => html_entity_decode($tag->name, ENT_QUOTES | ENT_HTML5, 'UTF-8'),
                     'slug' => $tag->slug,
-                    'description' => $tag->description,
+                    'description' => html_entity_decode($tag->description, ENT_QUOTES | ENT_HTML5, 'UTF-8'),
                     'count' => $tag->count,
                 );
             }

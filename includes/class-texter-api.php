@@ -10,16 +10,29 @@ if (!defined('ABSPATH')) {
 
 class Texter_API
 {
-
-    /**
-     * REST API namespace
-     */
-    const API_NAMESPACE = 'litterateur/v1';
-
     /**
      * Endpoint instances
      */
     private $endpoints = array();
+
+    /**
+     * Cached menu slug
+     */
+    private $menu_slug;
+
+    /**
+     * Get the REST API namespace
+     *
+     * @return string The API namespace
+     */
+    public static function get_api_namespace() {
+        return texter_brand('api_namespace', 'litterateur') . '/v1';
+    }
+
+    /**
+     * For backwards compatibility - use get_api_namespace() instead
+     */
+    const API_NAMESPACE = 'litterateur/v1';
 
     /**
      * Initialize the plugin
@@ -66,22 +79,39 @@ class Texter_API
      */
     public function register_routes()
     {
+        $namespace = self::get_api_namespace();
         foreach ($this->endpoints as $endpoint) {
-            $endpoint->register_routes(self::API_NAMESPACE);
+            $endpoint->register_routes($namespace);
         }
     }
 
     /**
-     * Add admin menu - top-level Litterateur menu with subpages
+     * Get the menu slug prefix
+     *
+     * @return string The menu slug
+     */
+    private function get_menu_slug() {
+        if (!$this->menu_slug) {
+            $this->menu_slug = texter_brand('menu_slug', 'litterateur');
+        }
+        return $this->menu_slug;
+    }
+
+    /**
+     * Add admin menu - top-level menu with subpages
      */
     public function add_admin_menu()
     {
+        $brand_name = texter_brand('name', 'Litterateur');
+        $menu_slug = $this->get_menu_slug();
+        $main_slug = $menu_slug . '-api';
+
         // Main menu page
         add_menu_page(
-            'Litterateur',
-            'Litterateur',
+            $brand_name,
+            $brand_name,
             'manage_options',
-            'litterateur-api',
+            $main_slug,
             array($this, 'render_dashboard_page'),
             'dashicons-edit-page',
             30
@@ -89,41 +119,41 @@ class Texter_API
 
         // Dashboard submenu (same as main)
         add_submenu_page(
-            'litterateur-api',
+            $main_slug,
             'Dashboard',
             'Dashboard',
             'manage_options',
-            'litterateur-api',
+            $main_slug,
             array($this, 'render_dashboard_page')
         );
 
         // Storage submenu
         add_submenu_page(
-            'litterateur-api',
+            $main_slug,
             'Storage Settings',
             'Storage',
             'manage_options',
-            'litterateur-storage',
+            $menu_slug . '-storage',
             array($this, 'render_storage_page')
         );
 
         // Gallery submenu
         add_submenu_page(
-            'litterateur-api',
+            $main_slug,
             'Gallery Settings',
             'Gallery',
             'manage_options',
-            'litterateur-gallery',
+            $menu_slug . '-gallery',
             array($this, 'render_gallery_page')
         );
 
         // Indexation submenu
         add_submenu_page(
-            'litterateur-api',
+            $main_slug,
             'Google Indexation',
             'Indexation',
             'manage_options',
-            'litterateur-indexation',
+            $menu_slug . '-indexation',
             array($this, 'render_indexation_page')
         );
     }
@@ -133,20 +163,22 @@ class Texter_API
      */
     public function enqueue_admin_styles($hook)
     {
-        // Load on all Litterateur admin pages
-        $litterateur_pages = array(
-            'toplevel_page_litterateur-api',
-            'litterateur_page_litterateur-storage',
-            'litterateur_page_litterateur-gallery',
-            'litterateur_page_litterateur-indexation',
+        $menu_slug = $this->get_menu_slug();
+
+        // Load on all plugin admin pages
+        $plugin_pages = array(
+            'toplevel_page_' . $menu_slug . '-api',
+            $menu_slug . '_page_' . $menu_slug . '-storage',
+            $menu_slug . '_page_' . $menu_slug . '-gallery',
+            $menu_slug . '_page_' . $menu_slug . '-indexation',
         );
 
-        if (!in_array($hook, $litterateur_pages)) {
+        if (!in_array($hook, $plugin_pages)) {
             return;
         }
 
         wp_enqueue_style(
-            'litterateur-api-admin',
+            $menu_slug . '-api-admin',
             TEXTER_API_PLUGIN_URL . 'assets/admin.css',
             array(),
             filemtime(TEXTER_API_PLUGIN_DIR . 'assets/admin.css')

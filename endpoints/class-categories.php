@@ -92,9 +92,9 @@ class Texter_API_Endpoint_Categories {
         foreach ($categories as $category) {
             $result[] = array(
                 'id' => $category->term_id,
-                'name' => $category->name,
+                'name' => html_entity_decode($category->name, ENT_QUOTES | ENT_HTML5, 'UTF-8'),
                 'slug' => $category->slug,
-                'description' => $category->description,
+                'description' => html_entity_decode($category->description, ENT_QUOTES | ENT_HTML5, 'UTF-8'),
                 'parent_id' => $category->parent ?: null,
                 'count' => $category->count,
             );
@@ -175,7 +175,7 @@ class Texter_API_Endpoint_Categories {
                     $term = get_term($result['term_id'], 'category');
                     $results['updated'][] = array(
                         'id' => $term->term_id,
-                        'name' => $term->name,
+                        'name' => html_entity_decode($term->name, ENT_QUOTES | ENT_HTML5, 'UTF-8'),
                         'slug' => $term->slug,
                     );
                 }
@@ -192,7 +192,7 @@ class Texter_API_Endpoint_Categories {
                     $term = get_term($result['term_id'], 'category');
                     $results['created'][] = array(
                         'id' => $term->term_id,
-                        'name' => $term->name,
+                        'name' => html_entity_decode($term->name, ENT_QUOTES | ENT_HTML5, 'UTF-8'),
                         'slug' => $term->slug,
                     );
                 }
@@ -214,9 +214,9 @@ class Texter_API_Endpoint_Categories {
             foreach ($all_categories as $category) {
                 $categories_list[] = array(
                     'id' => $category->term_id,
-                    'name' => $category->name,
+                    'name' => html_entity_decode($category->name, ENT_QUOTES | ENT_HTML5, 'UTF-8'),
                     'slug' => $category->slug,
-                    'description' => $category->description,
+                    'description' => html_entity_decode($category->description, ENT_QUOTES | ENT_HTML5, 'UTF-8'),
                     'parent_id' => $category->parent ?: null,
                     'count' => $category->count,
                 );
@@ -270,9 +270,9 @@ class Texter_API_Endpoint_Categories {
         
         $created = array(
             'id' => $term->term_id,
-            'name' => $term->name,
+            'name' => html_entity_decode($term->name, ENT_QUOTES | ENT_HTML5, 'UTF-8'),
             'slug' => $term->slug,
-            'description' => $term->description,
+            'description' => html_entity_decode($term->description, ENT_QUOTES | ENT_HTML5, 'UTF-8'),
             'parent_id' => $term->parent ?: null,
             'count' => $term->count,
         );
@@ -336,9 +336,9 @@ class Texter_API_Endpoint_Categories {
         
         $updated = array(
             'id' => $term->term_id,
-            'name' => $term->name,
+            'name' => html_entity_decode($term->name, ENT_QUOTES | ENT_HTML5, 'UTF-8'),
             'slug' => $term->slug,
-            'description' => $term->description,
+            'description' => html_entity_decode($term->description, ENT_QUOTES | ENT_HTML5, 'UTF-8'),
             'parent_id' => $term->parent ?: null,
             'count' => $term->count,
         );
@@ -422,9 +422,9 @@ class Texter_API_Endpoint_Categories {
             foreach ($all_categories as $category) {
                 $categories_list[] = array(
                     'id' => $category->term_id,
-                    'name' => $category->name,
+                    'name' => html_entity_decode($category->name, ENT_QUOTES | ENT_HTML5, 'UTF-8'),
                     'slug' => $category->slug,
-                    'description' => $category->description,
+                    'description' => html_entity_decode($category->description, ENT_QUOTES | ENT_HTML5, 'UTF-8'),
                     'parent_id' => $category->parent ?: null,
                     'count' => $category->count,
                 );
