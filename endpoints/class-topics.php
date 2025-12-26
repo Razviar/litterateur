@@ -101,23 +101,48 @@ class Texter_API_Endpoint_Topics
         if ($author_id) {
             $post_data['post_author'] = intval($author_id);
         } else {
-            // Get a random author with 'author' role
+            // Get users with 'author' or 'editor' role (use role__in for multiple roles)
             $authors = get_users(array(
-                'role' => ['author', 'editor'],
-                'number' => 10,
+                'role__in' => array('author', 'editor'),
+                'number' => 50,
                 'orderby' => 'rand',
             ));
 
+            // Filter out super admins and users with manage_options capability
+            $authors = array_filter($authors, function ($user) {
+                // Check if user is super admin (multisite)
+                if (is_multisite() && is_super_admin($user->ID)) {
+                    return false;
+                }
+                // Check if user has manage_options capability (typically admin-level)
+                if ($user->has_cap('manage_options')) {
+                    return false;
+                }
+                return true;
+            });
+
             if (empty($authors)) {
-                // Fallback to any user who can publish posts
+                // Fallback to any user who can publish posts but exclude admins
                 $authors = get_users(array(
                     'capability' => 'publish_posts',
-                    'number' => 10,
+                    'number' => 50,
                     'orderby' => 'rand',
                 ));
+
+                // Filter out admins from fallback as well
+                $authors = array_filter($authors, function ($user) {
+                    if (is_multisite() && is_super_admin($user->ID)) {
+                        return false;
+                    }
+                    if ($user->has_cap('manage_options')) {
+                        return false;
+                    }
+                    return true;
+                });
             }
 
             if (!empty($authors)) {
+                $authors = array_values($authors); // Re-index after filtering
                 $random_author = $authors[array_rand($authors)];
                 $post_data['post_author'] = $random_author->ID;
             }
