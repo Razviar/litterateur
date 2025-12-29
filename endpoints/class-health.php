@@ -33,7 +33,7 @@ class Texter_API_Endpoint_Health
      */
     public function get_health($request)
     {
-        global $wp_version;
+        global $wp_version, $wpdb;
 
         // Handle multisite - switch to requested site if specified
         Texter_API_Auth::maybe_switch_to_site($request);
@@ -52,16 +52,50 @@ class Texter_API_Endpoint_Health
             }
         }
 
+        // Build system info object
+        $system = array(
+            'type' => 'wordpress',
+            'wordpress_version' => $wp_version,
+            'php_version' => phpversion(),
+            'is_multisite' => is_multisite(),
+        );
+
+        // Add database version
+        if (method_exists($wpdb, 'db_version')) {
+            $system['db_version'] = $wpdb->db_version();
+        }
+
+        // Add active theme
+        $theme = wp_get_theme();
+        if ($theme) {
+            $system['theme'] = $theme->get('Name');
+        }
+
+        // Add server software
+        if (!empty($_SERVER['SERVER_SOFTWARE'])) {
+            $system['server'] = sanitize_text_field($_SERVER['SERVER_SOFTWARE']);
+        }
+
+        // Add max upload size
+        $system['max_upload_size'] = wp_max_upload_size();
+
+        // Add memory limit
+        $memory_limit = ini_get('memory_limit');
+        if ($memory_limit) {
+            $system['memory_limit'] = wp_convert_hr_to_bytes($memory_limit);
+        }
+
+        // Add debug mode status
+        $system['debug_mode'] = defined('WP_DEBUG') && WP_DEBUG;
+
         return Texter_API_Response::success(array(
             'status' => 'ok',
             'version' => TEXTER_API_VERSION,
-            'wordpress_version' => $wp_version,
-            'php_version' => phpversion(),
+            'system' => $system,
             'site_id' => get_current_blog_id(),
             'site_url' => get_site_url(),
             'site_name' => get_bloginfo('name'),
             'site_logo' => $site_logo_url ? $site_logo_url : null,
-            'is_multisite' => is_multisite(),
             'timestamp' => current_time('c'),
         ));
     }
