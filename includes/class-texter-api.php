@@ -222,11 +222,20 @@ class Texter_API
             echo '<div class="notice notice-error"><p>Failed to save indexation settings.</p></div>';
         }
 
+        // Handle header codes settings
+        $header_codes_saved = Texter_API_Header_Codes::process_settings_form();
+        if ($header_codes_saved === true) {
+            echo '<div class="notice notice-success"><p>Header codes have been saved.</p></div>';
+        } elseif ($header_codes_saved === false) {
+            echo '<div class="notice notice-error"><p>Failed to save header codes.</p></div>';
+        }
+
 ?>
         <div class="wrap litterateur-api-settings">
             <?php Litterateur_Admin_Header::render('Indexation'); ?>
 
             <div class="litterateur-api-cards-grid">
+                <?php Texter_API_Header_Codes::render_settings_section(); ?>
                 <?php Texter_API_Indexation_Admin::render_settings_section(); ?>
             </div>
         </div>

@@ -4,7 +4,7 @@
  * Plugin Name: Litterateur API
  * Plugin URI: https://litterateur.pro
  * Description: REST API integration for Litterateur content management service
- * Version: 1.0.14
+ * Version: 1.0.15
  * Author: Litterateur
  * Author URI: https://litterateur.pro
  * License: GPL v2 or later
@@ -18,7 +18,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Plugin constants
-define('TEXTER_API_VERSION', '1.0.14');
+define('TEXTER_API_VERSION', '1.0.15');
 define('TEXTER_API_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('TEXTER_API_PLUGIN_URL', plugin_dir_url(__FILE__));
 
@@ -31,6 +31,7 @@ require_once TEXTER_API_PLUGIN_DIR . 'includes/class-auth.php';
 require_once TEXTER_API_PLUGIN_DIR . 'includes/class-texter-api.php';
 require_once TEXTER_API_PLUGIN_DIR . 'includes/class-google-indexation.php';
 require_once TEXTER_API_PLUGIN_DIR . 'includes/class-indexation-admin.php';
+require_once TEXTER_API_PLUGIN_DIR . 'includes/class-header-codes.php';
 require_once TEXTER_API_PLUGIN_DIR . 'includes/class-external-featured-image.php';
 require_once TEXTER_API_PLUGIN_DIR . 'includes/class-s3-storage.php';
 
@@ -63,6 +64,9 @@ function texter_api_init()
 
     // Initialize indexation cron
     Texter_API_Google_Indexation::init_cron();
+
+    // Initialize header codes
+    Texter_API_Header_Codes::init();
 
     // Initialize external featured image functionality
     Texter_External_Featured_Image::init();
