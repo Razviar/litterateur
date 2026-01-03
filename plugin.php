@@ -4,7 +4,7 @@
  * Plugin Name: Litterateur API
  * Plugin URI: https://litterateur.pro
  * Description: REST API integration for Litterateur content management service
- * Version: 1.0.15
+ * Version: 1.0.16
  * Author: Litterateur
  * Author URI: https://litterateur.pro
  * License: GPL v2 or later
@@ -18,12 +18,15 @@ if (!defined('ABSPATH')) {
 }
 
 // Plugin constants
-define('TEXTER_API_VERSION', '1.0.15');
+define('TEXTER_API_VERSION', '1.0.16');
 define('TEXTER_API_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('TEXTER_API_PLUGIN_URL', plugin_dir_url(__FILE__));
 
 // Include plugin configuration (must be loaded first)
 require_once TEXTER_API_PLUGIN_DIR . 'includes/config.php';
+
+// Include site closure early (needs to block before anything else loads)
+require_once TEXTER_API_PLUGIN_DIR . 'includes/class-site-closure.php';
 
 // Include required files
 require_once TEXTER_API_PLUGIN_DIR . 'includes/class-response.php';
@@ -53,6 +56,16 @@ require_once TEXTER_API_PLUGIN_DIR . 'endpoints/class-authors.php';
 require_once TEXTER_API_PLUGIN_DIR . 'endpoints/class-structured.php';
 require_once TEXTER_API_PLUGIN_DIR . 'endpoints/class-data-tables.php';
 require_once TEXTER_API_PLUGIN_DIR . 'endpoints/class-gallery.php';
+
+/**
+ * Initialize site closure check very early
+ * Must run before most plugins to block site access properly
+ */
+function texter_site_closure_init()
+{
+    Texter_Site_Closure::init();
+}
+add_action('init', 'texter_site_closure_init', 1);
 
 /**
  * Initialize the plugin

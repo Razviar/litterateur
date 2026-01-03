@@ -156,6 +156,16 @@ class Texter_API
             $menu_slug . '-indexation',
             array($this, 'render_indexation_page')
         );
+
+        // Site Closure submenu
+        add_submenu_page(
+            $main_slug,
+            'Close Website',
+            'Close Website',
+            'manage_options',
+            $menu_slug . '-closure',
+            array($this, 'render_closure_page')
+        );
     }
 
     /**
@@ -171,6 +181,7 @@ class Texter_API
             $menu_slug . '_page_' . $menu_slug . '-storage',
             $menu_slug . '_page_' . $menu_slug . '-gallery',
             $menu_slug . '_page_' . $menu_slug . '-indexation',
+            $menu_slug . '_page_' . $menu_slug . '-closure',
         );
 
         if (!in_array($hook, $plugin_pages)) {
@@ -237,6 +248,35 @@ class Texter_API
             <div class="litterateur-api-cards-grid">
                 <?php Texter_API_Header_Codes::render_settings_section(); ?>
                 <?php Texter_API_Indexation_Admin::render_settings_section(); ?>
+            </div>
+        </div>
+<?php
+    }
+
+    /**
+     * Render Site Closure settings page
+     */
+    public function render_closure_page()
+    {
+        // Handle form submission
+        $saved = Texter_Site_Closure::process_settings_form();
+        if ($saved === true) {
+            $is_enabled = Texter_Site_Closure::is_enabled();
+            if ($is_enabled) {
+                echo '<div class="notice notice-warning"><p><strong>Website is now CLOSED.</strong> Visitors will see the closure message. You can still access the site because you are logged in as an administrator.</p></div>';
+            } else {
+                echo '<div class="notice notice-success"><p>Website is now open to all visitors.</p></div>';
+            }
+        } elseif ($saved === false) {
+            echo '<div class="notice notice-error"><p>Failed to save settings.</p></div>';
+        }
+
+?>
+        <div class="wrap litterateur-api-settings">
+            <?php Litterateur_Admin_Header::render('Close Website'); ?>
+
+            <div class="litterateur-api-cards-grid">
+                <?php Texter_Site_Closure::render_settings_section(); ?>
             </div>
         </div>
 <?php
