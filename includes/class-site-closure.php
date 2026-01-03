@@ -414,7 +414,7 @@ HTML;
                     <tr id="texter-custom-message-row" style="<?php echo $message_type === 'custom' ? '' : 'display:none;'; ?>">
                         <th scope="row">Custom Message</th>
                         <td>
-                            <textarea name="texter_site_closure_custom_message" class="litterateur-api-key-textarea" placeholder="Enter your custom closure message here..."><?php echo esc_textarea($custom_message); ?></textarea>
+                            <textarea style="width:100%;" name="texter_site_closure_custom_message" class="litterateur-api-key-textarea" placeholder="Enter your custom closure message here..."><?php echo esc_textarea($custom_message); ?></textarea>
                             <p class="description">Write your own message to display when the site is closed.</p>
                         </td>
                     </tr>
