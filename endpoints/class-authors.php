@@ -174,13 +174,22 @@ class Texter_API_Endpoint_Authors
             return Texter_API_Response::error($user_id->get_error_message());
         }
 
-        // Handle avatar upload from base64
-        $avatar = $request->get_param('avatar');
-        if (!empty($avatar)) {
-            $avatar_result = $this->set_user_avatar_from_base64($user_id, $avatar);
+        // Handle avatar upload - multipart file or base64
+        $files = $request->get_file_params();
+        if (!empty($files['avatar']) && $files['avatar']['error'] === UPLOAD_ERR_OK) {
+            // Multipart file upload
+            $avatar_result = $this->set_user_avatar_from_file($user_id, $files['avatar']);
             if (is_wp_error($avatar_result)) {
-                // Log error but don't fail the user creation
                 error_log('Texter API: Failed to set avatar for user ' . $user_id . ': ' . $avatar_result->get_error_message());
+            }
+        } else {
+            // Legacy: base64 encoded avatar
+            $avatar = $request->get_param('avatar');
+            if (!empty($avatar)) {
+                $avatar_result = $this->set_user_avatar_from_base64($user_id, $avatar);
+                if (is_wp_error($avatar_result)) {
+                    error_log('Texter API: Failed to set avatar for user ' . $user_id . ': ' . $avatar_result->get_error_message());
+                }
             }
         }
 
@@ -253,13 +262,22 @@ class Texter_API_Endpoint_Authors
             return Texter_API_Response::error($result->get_error_message());
         }
 
-        // Handle avatar upload from base64
-        $avatar = $request->get_param('avatar');
-        if (!empty($avatar)) {
-            $avatar_result = $this->set_user_avatar_from_base64($user_id, $avatar);
+        // Handle avatar upload - multipart file or base64
+        $files = $request->get_file_params();
+        if (!empty($files['avatar']) && $files['avatar']['error'] === UPLOAD_ERR_OK) {
+            // Multipart file upload
+            $avatar_result = $this->set_user_avatar_from_file($user_id, $files['avatar']);
             if (is_wp_error($avatar_result)) {
-                // Log error but don't fail the user update
                 error_log('Texter API: Failed to set avatar for user ' . $user_id . ': ' . $avatar_result->get_error_message());
+            }
+        } else {
+            // Legacy: base64 encoded avatar
+            $avatar = $request->get_param('avatar');
+            if (!empty($avatar)) {
+                $avatar_result = $this->set_user_avatar_from_base64($user_id, $avatar);
+                if (is_wp_error($avatar_result)) {
+                    error_log('Texter API: Failed to set avatar for user ' . $user_id . ': ' . $avatar_result->get_error_message());
+                }
             }
         }
 
@@ -277,6 +295,30 @@ class Texter_API_Endpoint_Authors
     }
 
     /**
+     * Set user avatar from uploaded file (multipart form data)
+     * Compatible with basic-user-avatars plugin
+     *
+     * @param int $user_id
+     * @param array $file $_FILES array element
+     * @return true|WP_Error
+     */
+    private function set_user_avatar_from_file($user_id, $file)
+    {
+        // Validate file upload
+        if (!isset($file['tmp_name']) || !is_uploaded_file($file['tmp_name'])) {
+            return new WP_Error('invalid_upload', 'Invalid file upload');
+        }
+
+        // Read file contents
+        $image_data = file_get_contents($file['tmp_name']);
+        if ($image_data === false) {
+            return new WP_Error('read_failed', 'Failed to read uploaded file');
+        }
+
+        return $this->save_user_avatar($user_id, $image_data);
+    }
+
+    /**
      * Set user avatar from base64 encoded image
      * Compatible with basic-user-avatars plugin
      *
@@ -287,58 +329,50 @@ class Texter_API_Endpoint_Authors
     private function set_user_avatar_from_base64($user_id, $base64_data)
     {
         // Parse base64 data - handle both 'data:image/jpeg;base64,xxxx' and plain base64
-        $extension = 'jpg'; // default
-        $image_data = null;
-
         if (preg_match('/^data:image\/([a-zA-Z]+);base64,(.+)$/', $base64_data, $matches)) {
-            // Data URI format
-            $mime_type = strtolower($matches[1]);
             $base64_content = $matches[2];
-
-            // Map mime type to extension
-            $mime_to_ext = array(
-                'jpeg' => 'jpg',
-                'jpg' => 'jpg',
-                'png' => 'png',
-                'gif' => 'gif',
-                'webp' => 'webp',
-            );
-
-            if (!isset($mime_to_ext[$mime_type])) {
-                return new WP_Error('invalid_type', 'Invalid image type. Allowed: jpg, png, gif, webp');
-            }
-
-            $extension = $mime_to_ext[$mime_type];
             $image_data = base64_decode($base64_content);
         } else {
-            // Plain base64 - try to decode and detect type
             $image_data = base64_decode($base64_data);
-
-            if ($image_data === false) {
-                return new WP_Error('invalid_base64', 'Invalid base64 data');
-            }
-
-            // Detect image type from magic bytes
-            $finfo = new finfo(FILEINFO_MIME_TYPE);
-            $detected_type = $finfo->buffer($image_data);
-
-            $type_to_ext = array(
-                'image/jpeg' => 'jpg',
-                'image/png' => 'png',
-                'image/gif' => 'gif',
-                'image/webp' => 'webp',
-            );
-
-            if (!isset($type_to_ext[$detected_type])) {
-                return new WP_Error('invalid_type', 'Invalid or unsupported image type: ' . $detected_type);
-            }
-
-            $extension = $type_to_ext[$detected_type];
         }
 
+        if ($image_data === false) {
+            return new WP_Error('invalid_base64', 'Invalid base64 data');
+        }
+
+        return $this->save_user_avatar($user_id, $image_data);
+    }
+
+    /**
+     * Save image data as user avatar
+     * Compatible with basic-user-avatars plugin
+     *
+     * @param int $user_id
+     * @param string $image_data Binary image data
+     * @return true|WP_Error
+     */
+    private function save_user_avatar($user_id, $image_data)
+    {
         if (empty($image_data)) {
             return new WP_Error('empty_image', 'Image data is empty');
         }
+
+        // Detect image type from magic bytes
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
+        $detected_type = $finfo->buffer($image_data);
+
+        $type_to_ext = array(
+            'image/jpeg' => 'jpg',
+            'image/png' => 'png',
+            'image/gif' => 'gif',
+            'image/webp' => 'webp',
+        );
+
+        if (!isset($type_to_ext[$detected_type])) {
+            return new WP_Error('invalid_type', 'Invalid or unsupported image type: ' . $detected_type);
+        }
+
+        $extension = $type_to_ext[$detected_type];
 
         // Get user for filename
         $user = get_user_by('ID', $user_id);
