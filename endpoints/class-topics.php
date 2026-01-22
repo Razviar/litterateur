@@ -96,11 +96,12 @@ class Texter_API_Endpoint_Topics
             $post_data['post_name'] = sanitize_title($slug);
         }
 
-        // Handle author - if not specified, pick a random author from the site
+        // Handle author - if not specified, check author settings
         $author_id = $request->get_param('author_id');
         if ($author_id) {
             $post_data['post_author'] = intval($author_id);
-        } else {
+        } elseif (Texter_Author_Settings::is_auto_select()) {
+            // Auto-select mode: pick a random author from the site
             // Get users with 'author' or 'editor' role (use role__in for multiple roles)
             $authors = get_users(array(
                 'role__in' => array('author', 'editor'),
@@ -146,6 +147,9 @@ class Texter_API_Endpoint_Topics
                 $random_author = $authors[array_rand($authors)];
                 $post_data['post_author'] = $random_author->ID;
             }
+        } else {
+            // Zero mode: set author ID to 0 (no author)
+            $post_data['post_author'] = 0;
         }
 
         // Handle publish date

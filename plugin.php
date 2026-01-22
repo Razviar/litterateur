@@ -4,7 +4,7 @@
  * Plugin Name: Litterateur API
  * Plugin URI: https://litterateur.pro
  * Description: REST API integration for Litterateur content management service
- * Version: 1.0.21
+ * Version: 1.0.22
  * Author: Litterateur
  * Author URI: https://litterateur.pro
  * License: GPL v2 or later
@@ -18,7 +18,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Plugin constants
-define('TEXTER_API_VERSION', '1.0.21');
+define('TEXTER_API_VERSION', '1.0.22');
 define('TEXTER_API_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('TEXTER_API_PLUGIN_URL', plugin_dir_url(__FILE__));
 
@@ -37,6 +37,7 @@ require_once TEXTER_API_PLUGIN_DIR . 'includes/class-indexation-admin.php';
 require_once TEXTER_API_PLUGIN_DIR . 'includes/class-header-codes.php';
 require_once TEXTER_API_PLUGIN_DIR . 'includes/class-external-featured-image.php';
 require_once TEXTER_API_PLUGIN_DIR . 'includes/class-s3-storage.php';
+require_once TEXTER_API_PLUGIN_DIR . 'includes/class-author-settings.php';
 
 // Include admin page modules
 require_once TEXTER_API_PLUGIN_DIR . 'includes/admin/class-admin-header.php';

@@ -157,6 +157,16 @@ class Texter_API
             array($this, 'render_indexation_page')
         );
 
+        // Author submenu
+        add_submenu_page(
+            $main_slug,
+            'Author Settings',
+            'Author',
+            'manage_options',
+            $menu_slug . '-author',
+            array($this, 'render_author_page')
+        );
+
         // Site Closure submenu
         add_submenu_page(
             $main_slug,
@@ -181,6 +191,7 @@ class Texter_API
             $menu_slug . '_page_' . $menu_slug . '-storage',
             $menu_slug . '_page_' . $menu_slug . '-gallery',
             $menu_slug . '_page_' . $menu_slug . '-indexation',
+            $menu_slug . '_page_' . $menu_slug . '-author',
             $menu_slug . '_page_' . $menu_slug . '-closure',
         );
 
@@ -218,6 +229,30 @@ class Texter_API
     public function render_gallery_page()
     {
         Litterateur_Admin_Gallery::render();
+    }
+
+    /**
+     * Render Author settings page
+     */
+    public function render_author_page()
+    {
+        // Handle form submission
+        $saved = Texter_Author_Settings::process_settings_form();
+        if ($saved === true) {
+            echo '<div class="notice notice-success"><p>Author settings have been saved.</p></div>';
+        } elseif ($saved === false) {
+            echo '<div class="notice notice-error"><p>Failed to save author settings.</p></div>';
+        }
+
+?>
+        <div class="wrap litterateur-api-settings">
+            <?php Litterateur_Admin_Header::render('Author'); ?>
+
+            <div class="litterateur-api-cards-grid">
+                <?php Texter_Author_Settings::render_settings_section(); ?>
+            </div>
+        </div>
+<?php
     }
 
     /**
