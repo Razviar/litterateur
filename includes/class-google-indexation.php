@@ -166,7 +166,7 @@ class Texter_API_Google_Indexation {
         $body = json_decode(wp_remote_retrieve_body($response), true);
         
         if (!isset($body['access_token'])) {
-            $error_msg = $body['error_description'] ?? $body['error'] ?? 'Unknown error';
+            $error_msg = $body['error_description'] ?? $body['error'] ?? 'Unknown error 8';
             return new WP_Error(
                 'token_error',
                 'Failed to get access token: ' . $error_msg,

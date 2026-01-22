@@ -245,7 +245,7 @@ class Texter_API_Indexation_Admin
                         // Reload to update status column
                         setTimeout(() => location.reload(), 1000);
                     } else {
-                        element.textContent = 'Error: ' + (data.data?.message || 'Unknown error');
+                        element.textContent = 'Error: ' + (data.data?.message || 'Unknown error 7');
                         element.style.pointerEvents = 'auto';
                     }
                 })
