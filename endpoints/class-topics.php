@@ -213,9 +213,13 @@ class Texter_API_Endpoint_Topics
         $featured_image = $request->get_param('featured_image');
         $image_title = $request->get_param('image_title');
 
+        // Log what we received for debugging
+        error_log("[Texter] Post $post_id: featured_image_id=" . ($featured_image_id ?: 'null') . ", featured_image_url=" . ($featured_image_url ?: 'null') . ", has_featured_image=" . (!empty($featured_image) ? 'yes' : 'no'));
+
         if (!empty($featured_image_id)) {
             // Use existing gallery image by ID (format: gal-{id})
-            $this->set_featured_image_from_gallery_id($post_id, $featured_image_id);
+            $result = $this->set_featured_image_from_gallery_id($post_id, $featured_image_id);
+            error_log("[Texter] Post $post_id: set_featured_image_from_gallery_id($featured_image_id) returned " . ($result ? $result : 'false'));
         } elseif (!empty($featured_image)) {
             // Base64 image
             $this->set_featured_image_from_base64($post_id, $featured_image, $image_title);
@@ -707,6 +711,8 @@ class Texter_API_Endpoint_Topics
      */
     private function set_featured_image_from_gallery_id($post_id, $gallery_id)
     {
+        error_log("[Texter] set_featured_image_from_gallery_id: post_id=$post_id, gallery_id=$gallery_id");
+
         // Check if this is an S3 image
         if (strpos($gallery_id, 's3-') === 0) {
             return $this->set_featured_image_from_s3($post_id, $gallery_id);
@@ -722,23 +728,29 @@ class Texter_API_Endpoint_Topics
             $attachment_id = intval($gallery_id);
         }
 
+        error_log("[Texter] Extracted attachment_id=$attachment_id from gallery_id=$gallery_id");
+
         if (!$attachment_id) {
+            error_log("[Texter] Invalid attachment_id (0 or null)");
             return false;
         }
 
         // Verify the attachment exists and is an image
         $attachment = get_post($attachment_id);
         if (!$attachment || $attachment->post_type !== 'attachment') {
+            error_log("[Texter] Attachment $attachment_id not found or not an attachment type");
             return false;
         }
 
         // Check if it's an image
         if (!wp_attachment_is_image($attachment_id)) {
+            error_log("[Texter] Attachment $attachment_id is not an image");
             return false;
         }
 
         // Set as featured image
-        set_post_thumbnail($post_id, $attachment_id);
+        $result = set_post_thumbnail($post_id, $attachment_id);
+        error_log("[Texter] set_post_thumbnail($post_id, $attachment_id) returned " . ($result ? 'true' : 'false'));
 
         return $attachment_id;
     }

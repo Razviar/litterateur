@@ -525,16 +525,21 @@ class Texter_API_Endpoint_Gallery
         require_once ABSPATH . 'wp-admin/includes/file.php';
         require_once ABSPATH . 'wp-admin/includes/image.php';
 
+        error_log("[Texter Gallery] upload_image called");
+
         $image_data = null;
         $image_type = 'webp'; // default
         $title = 'Uploaded Image';
 
         // Check for multipart file upload first
         $files = $request->get_file_params();
+        error_log("[Texter Gallery] Files received: " . print_r(array_keys($files), true));
+
         if (!empty($files['image']) && $files['image']['error'] === UPLOAD_ERR_OK) {
             // Multipart form data upload
             $image_data = file_get_contents($files['image']['tmp_name']);
             $title = $request->get_param('title') ?: pathinfo($files['image']['name'], PATHINFO_FILENAME);
+            error_log("[Texter Gallery] Multipart upload: size=" . strlen($image_data) . ", title=$title");
 
             // Detect type from uploaded file
             $finfo = new finfo(FILEINFO_MIME_TYPE);
@@ -581,12 +586,16 @@ class Texter_API_Endpoint_Gallery
         // Add timestamp to make filename unique
         $filename = $slug . '-' . time() . '.' . $image_type;
 
+        error_log("[Texter Gallery] Final image size=" . strlen($image_data) . ", filename=$filename, type=$image_type");
+
         // Check if S3 is preferred storage
         if (Texter_S3_Storage::is_preferred_storage()) {
+            error_log("[Texter Gallery] Using S3 storage");
             return $this->upload_to_s3($image_data, $filename, $mime_type, $title);
         }
 
         // Upload to WordPress media library
+        error_log("[Texter Gallery] Using WordPress media library");
         return $this->upload_to_wordpress($image_data, $filename, $image_type, $title);
     }
 
@@ -662,12 +671,17 @@ class Texter_API_Endpoint_Gallery
      */
     private function upload_to_wordpress($image_data, $filename, $image_type, $title)
     {
+        error_log("[Texter Gallery] upload_to_wordpress: filename=$filename, type=$image_type, title=$title, size=" . strlen($image_data));
+
         // Create temp file
         $upload_dir = wp_upload_dir();
         $tmp_file = $upload_dir['path'] . '/' . wp_unique_filename($upload_dir['path'], $filename);
 
+        error_log("[Texter Gallery] Writing to temp file: $tmp_file");
+
         // Write image data
         if (file_put_contents($tmp_file, $image_data) === false) {
+            error_log("[Texter Gallery] Failed to write temp file");
             return new WP_Error('upload_failed', 'Failed to write image file', ['status' => 500]);
         }
 
@@ -686,12 +700,15 @@ class Texter_API_Endpoint_Gallery
         // Clean up temp file if sideload failed
         if (is_wp_error($attachment_id)) {
             @unlink($tmp_file);
+            error_log("[Texter Gallery] media_handle_sideload failed: " . $attachment_id->get_error_message());
             return new WP_Error(
                 'media_upload_failed',
                 'Failed to upload image: ' . $attachment_id->get_error_message(),
                 ['status' => 500]
             );
         }
+
+        error_log("[Texter Gallery] Created attachment ID: $attachment_id");
 
         // Set alt text
         update_post_meta($attachment_id, '_wp_attachment_image_alt', sanitize_text_field($title));
